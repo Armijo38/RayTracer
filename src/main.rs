@@ -1,6 +1,11 @@
 use image;
+use tobj;
 
 mod vec;
+mod shapes {
+    pub mod shape;
+    pub mod sphere;
+}
 
 fn main() {
     let img_size = (128, 128);
