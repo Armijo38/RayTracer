@@ -9,6 +9,7 @@ mod shapes {
     pub mod cube;
     pub mod intersection;
     pub mod difference;
+    pub mod obj;
 }
 mod object;
 mod lights;
@@ -21,6 +22,7 @@ use shapes::plane::Plane;
 use shapes::cube::Cube;
 use shapes::intersection::Intersection;
 use shapes::difference::Difference;
+use shapes::obj::Obj;
 use object::Object;
 use lights::{Light,PointLight,AmbientLight};
 
@@ -190,6 +192,7 @@ fn main() {
                                             //.set_size(Vec3::new(0.3, 0.3, 0.3))
 
                                             */
+        /*
         Object::new(Box::new(Intersection::new(Object::new(Box::new(Sphere::new())),
                                                Object::new(Box::new(Sphere::new())).set_size(Vec3::new(0.5, 0.5, 0.5))
                                                                                    .set_position(Vec3::new(0.5, 0.0, 0.0))
@@ -205,7 +208,12 @@ fn main() {
                                                   .set_rotation(0, -70, 0),
         Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(0.5, 1.0, 4.0))
                                                    .set_rotation(0, -70, 0)
-                                                   .set_color([0.0, 1.0, 0.0])
+                                                   .set_color([0.0, 1.0, 0.0]),
+                                                   */
+        Object::new(Box::new(Obj::new("objs/bird/bird.obj"))).set_position(Vec3::new(0.5, 0.5, 4.0))
+                                                               .set_rotation(-90, 0, 0),
+        Object::new(Box::new(Obj::new("objs/table/table.obj"))).set_position(Vec3::new(-0.5, -0.5, 4.0))
+                                                               .set_rotation(-90, 0, 0),
         //Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(1.0, -1.5,))
     ];
     /*

@@ -1,10 +1,26 @@
 use std::ops::{Add,AddAssign,Sub,SubAssign,Mul,MulAssign,Div,DivAssign,Neg};
+use std::cmp::PartialEq;
 
 #[derive(Clone)]
 pub struct Vec3 {
     x: f32,
     y: f32,
     z: f32,
+}
+
+impl PartialEq for Vec3 {
+    fn eq(&self, rhs: &Vec3) -> bool {
+        /*
+        self.x == rhs.x
+            && self.y == rhs.y
+            && self.z == rhs.z
+            */
+        (self - rhs).length() < 1e-5
+    }
+
+    fn ne(&self, rhs: &Vec3) -> bool {
+        !(self == rhs)
+    }
 }
 
 impl Neg for Vec3 {

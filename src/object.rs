@@ -79,6 +79,8 @@ impl Object {
     }
 
     pub fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<(IntersectionResult, &Object)> {
+        let r2 = ray.clone();
+
         let start = start - &self.position;
         let start = &self.rotation * start;
         let start = start / &self.size;
