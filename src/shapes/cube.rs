@@ -1,66 +1,71 @@
 use super::shape::Shape;
-use crage::vec::Vec3;
+use super::shape::IntersectionResult;
+use super::plane::Plane;
+use crate::vec::Vec3;
 
-
-// It has 1x1x1 and starts in (0, 0, 0)
 pub struct Cube {
-    a_point: Vec3,
-    b_point: Vec3,
+    //point1: Vec3,
+    //point2: Vec3,
+
+    planes: [Plane; 6],
 }
 
 impl Shape for Cube {
-    fn intersects(&self, ray: &Vec3) -> bool {
-        // ray x = rx + t * dx
-        // rx = 0 (init point)
-        // dx = ray.x() (direction)
-        // rx + t * dx = CubePointA.X (-0.5)
-        // rx + t * dx = CubePointB.X (0.5)
-        
-        let t_calcer = |cube_point: f32, ray_direction: f32| -> f32 {
-            if cube_point == 0 {
-                -1.0
-            } else {
-                cube_point / ray_direction
-            }
-        };
-        
-        let t_ax = t_calcer(self.a_point.x(), ray.x());
-        let t_bx = t_calcer(self.b_point.x(), ray.x());
-        
-        let t_ay = t_calcer(self.a_point.y(), ray.y());
-        let t_by = t_calcer(self.b_point.y(), ray.y());
-
-        let t_az = t_calcer(self.a_point.z(), ray.z());
-        let t_bz = t_calcer(self.b_point.z(), ray.z());
-
-        // calc intersecion point
-        // For example for x plane
-        // y_ax = ay + t_ax * dy
-        // z_ax = az + t_ax * dz
-        
-        let check_intersection = |t: f32, ray_direction1: f32, ray_direction2: f32| -> bool {
-            let one = ray_direction1 * t;
-            let two = ray_direction2 * t;
+    fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
+        let mut result: Option<IntersectionResult> = None;
+        for plane in &self.planes {
+            result = match plane.intersects(start, ray) {
+                None => result,
+                Some(mut intersection) => {
+                    match result {
+                        None => Some(intersection),
+                        Some(mut best_intersection) => {
+                            if intersection.distance < best_intersection.distance {
+                                intersection.max_distance = best_intersection.distance;
+                                Some(intersection)
+                            } else {
+                                best_intersection.max_distance = intersection.distance;
+                                Some(best_intersection)
+                            }
+                        }
+                    }
+                }
+            };
         }
 
-        let calc_intersection_point = |t: f32, ray_direction: f32| -> TMaybe<f32> {
-            if t < 0.0 {
-                None
-            } else {
-                Some(t * ray_direction)
-            }
-        }
-
-        let y_ax = calc_intersection_point(t_ax, ray.y());
-        let y_bx = calc_intersection_point(t_bx, ray.y());
+        return result;
     }
 }
 
 impl Cube {
-    fn new() -> Cube {
+    pub fn new() -> Cube {
+        //point1 - left up
+        //point2 - right down
+
+        let point1 = Vec3::new(-0.5, -0.5, -0.5);
+        let point2 = Vec3::new(0.5, 0.5, 0.5);
+
         Cube {
-            a_point : Vec3::new(-0.5, -0.5, 1.0)
-            b_point : Vec3::new(0.5, 0.5, 2.0)
+            planes: [
+                Plane::new(Vec3::new(point1.x(), point2.y(), point2.z()),
+                           Vec3::new(0.0, 0.0, point1.z() - point2.z()),
+                           Vec3::new(0.0, point1.y() - point2.y(), 0.0)), // left
+                Plane::new(Vec3::new(point2.x(), point2.y(), point1.z()),
+                           Vec3::new(0.0, 0.0, point2.z() - point1.z()),
+                           Vec3::new(0.0, point1.y() - point2.y(), 0.0)), // right
+                Plane::new(Vec3::new(point2.x(), point2.y(), point1.z()),
+                           Vec3::new(0.0, point1.y() - point2.y(), 0.0),
+                           Vec3::new(point1.x() - point2.x(), 0.0, 0.0)), // front
+                Plane::new(Vec3::new(point2.x(), point2.y(), point2.z()),
+                           Vec3::new(point1.x() - point2.x(), 0.0, 0.0),
+                           Vec3::new(0.0, point1.y() - point2.y(), 0.0)), //back
+                Plane::new(Vec3::new(point2.x(), point1.y(), point2.z()),
+                           Vec3::new(point1.x() - point2.x(), 0.0, 0.0),
+                           Vec3::new(0.0, 0.0, point1.z() - point2.z())), // up
+                Plane::new(Vec3::new(point2.x(), point2.y(), point1.z()),
+                           Vec3::new(point1.x() - point2.x(), 0.0, 0.0),
+                           Vec3::new(0.0, 0.0, point2.z() - point1.z())), // down
+            ]
         }
     }
 }
