@@ -89,11 +89,10 @@ impl Object {
         let ray = ray / &self.size;
         match self.shape.intersects(&start, &ray) {
             None => None,
-            Some(intersection) => {
-                Some((IntersectionResult::new(intersection.distance,
-                                              intersection.max_distance,
-                                              intersection.norm * &self.rotation),
-                    self))
+            Some(mut intersection) => {
+                intersection.norm = intersection.norm * &self.rotation;
+                Some((intersection,
+                      self))
             }
         }
     }

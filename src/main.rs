@@ -25,6 +25,7 @@ use shapes::difference::Difference;
 use shapes::obj::Obj;
 use object::Object;
 use lights::{Light,PointLight,AmbientLight};
+use indicatif::ProgressBar;
 
 fn intersect<'a>(start: &Vec3, direction: &Vec3,
                  objects: &'a Vec<Object>,
@@ -66,7 +67,10 @@ fn ray_trace(start: &Vec3, direction: &Vec3,
 
     match best_intersection {
         Some((intersection, object)) => {
-            let mut result_color = object.color;
+            let mut result_color = match intersection.color {
+                Some(color) => color,
+                None => object.color
+            };
             let point = start + direction * intersection.distance;
 
             for light in lights {
@@ -124,8 +128,8 @@ fn rotate_view(x_phi: f32, y_phi: f32, z_phi: f32, eye: vec::Vec3) -> vec::Vec3 
 }
 
 fn main() {
-    let img_size: (i32, i32) = (512, 512);
-    //let img_size: (i32, i32) = (2048, 2048);
+    //let img_size: (i32, i32) = (512, 512);
+    let img_size: (i32, i32) = (2048, 2048);
     //let img_size: (i32, i32) = (8192, 8192);
     let viewport_size = (1.0, 1.0);
     let z_dist = 1.0;
@@ -210,10 +214,10 @@ fn main() {
                                                    .set_rotation(0, -70, 0)
                                                    .set_color([0.0, 1.0, 0.0]),
                                                    */
-        Object::new(Box::new(Obj::new("objs/bird/bird.obj"))).set_position(Vec3::new(0.5, 0.5, 4.0))
-                                                               .set_rotation(-90, 0, 0),
-        Object::new(Box::new(Obj::new("objs/table/table.obj"))).set_position(Vec3::new(-0.5, -0.5, 4.0))
-                                                               .set_rotation(-90, 0, 0),
+        Object::new(Box::new(Obj::new("objs/bird/bird.obj", "objs/bird/bird.png"))).set_position(Vec3::new(0.5, 0.5, 4.0))
+                                                               .set_rotation(-90, 0, 0).set_color([1.0, 0.0, 0.0]),
+        Object::new(Box::new(Obj::new("objs/table/table.obj", "objs/table/table.png"))).set_position(Vec3::new(-0.5, -0.5, 4.0))
+                                                               .set_rotation(-90, 0, 0).set_color([0.0, 1.0, 0.0]),
         //Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(1.0, -1.5,))
     ];
     /*
@@ -261,6 +265,8 @@ fn main() {
     let y_phi = 0.0;
     let z_phi = 0.0;
 
+    let bar = ProgressBar::new((img.width() * img.height()) as u64);
+
     for x in 0..img.width() as i32 {
         for y in 0..img.height() as i32 {
             let eye = Vec3::new(
@@ -283,8 +289,10 @@ fn main() {
                                   image::Rgb([0, 0, 0]));
                 }
             }
+            bar.inc(1);
         }
     }
+    bar.finish();
 
     let path = "./img.png";
     img.save_with_format(path, image::ImageFormat::Png);
