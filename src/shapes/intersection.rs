@@ -1,12 +1,15 @@
 use super::shape::{Shape,IntersectionResult};
 use crate::object::Object;
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
+#[derive(Serialize,Deserialize,Debug)]
 pub struct Intersection {
     shape1: Object,
     shape2: Object,
 }
 
+#[typetag::serde(name="intersection")]
 impl Shape for Intersection {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
         match self.shape1.intersects(start, ray) {
@@ -37,9 +40,15 @@ impl Shape for Intersection {
             }
         }
     }
+
+    fn init(&mut self) {
+        self.shape1.init();
+        self.shape2.init();
+    }
 }
 
 impl Intersection {
+    #[allow(dead_code)]
     pub fn new(shape1: Object, shape2: Object) -> Intersection {
         Intersection {
             shape1,

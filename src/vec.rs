@@ -1,7 +1,8 @@
 use std::ops::{Add,AddAssign,Sub,SubAssign,Mul,MulAssign,Div,DivAssign,Neg};
 use std::cmp::PartialEq;
+use serde::{Serialize,Deserialize};
 
-#[derive(Clone)]
+#[derive(Clone,Serialize,Deserialize,Default,Debug)]
 pub struct Vec3 {
     x: f32,
     y: f32,
@@ -295,6 +296,10 @@ impl Vec3 {
 
     pub fn new_default() -> Self {
         Vec3::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn new_unit() -> Self {
+        Vec3::new(1.0, 1.0, 1.0)
     }
 
     pub fn length_squared(&self) -> f32 {

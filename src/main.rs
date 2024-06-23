@@ -1,5 +1,7 @@
 use image;
 
+use std::fs;
+
 mod vec;
 mod matrix;
 mod shapes {
@@ -16,16 +18,13 @@ mod lights;
 
 use vec::Vec3;
 use matrix::Matrix33;
-use shapes::shape::{Shape,IntersectionResult};
-use shapes::sphere::Sphere;
-use shapes::plane::Plane;
-use shapes::cube::Cube;
-use shapes::intersection::Intersection;
-use shapes::difference::Difference;
-use shapes::obj::Obj;
+use shapes::shape::IntersectionResult;
 use object::Object;
-use lights::{Light,PointLight,AmbientLight};
+use lights::Light;
+
 use indicatif::ProgressBar;
+use clap::Parser;
+use serde::{Serialize,Deserialize};
 
 fn intersect<'a>(start: &Vec3, direction: &Vec3,
                  objects: &'a Vec<Object>,
@@ -127,156 +126,71 @@ fn rotate_view(x_phi: f32, y_phi: f32, z_phi: f32, eye: vec::Vec3) -> vec::Vec3 
     eye * x_matrix * y_matrix * z_matrix
 }
 
+#[derive(Parser,Debug)]
+struct Args {
+    /// Path to config file
+    #[arg(short, long)]
+    config: String,
+
+    /// Path to output file
+    #[arg(short, long)]
+    output_file: String,
+
+    /// Print objects info
+    #[arg(short, long, default_value_t = false)]
+    print_debug_objects: bool,
+}
+
+#[derive(Serialize,Deserialize)]
+struct Config {
+    img_size: (i32, i32),
+    reflection_depth: u16,
+    #[serde(default)]
+    start: Vec3,
+    #[serde(default)]
+    // TODO: convert from radians
+    view_angle: Vec3,
+
+    // TODO: Union shape?
+    objects: Vec<Object>,
+    lights: Vec<Box<dyn Light>>,
+}
+
 fn main() {
-    //let img_size: (i32, i32) = (512, 512);
-    let img_size: (i32, i32) = (2048, 2048);
-    //let img_size: (i32, i32) = (8192, 8192);
+    let args = Args::parse();
+
     let viewport_size = (1.0, 1.0);
     let z_dist = 1.0;
-    let mut img = image::RgbImage::new(img_size.0 as u32, img_size.1 as u32);
 
-    /*
-    let objects: Vec<Object> = vec![
-        Object::new(Box::new(Sphere::new())).set_position(Vec3::new(-1.0, 1.0, 5.0))
-                                            .set_color([0.0, 1.0, 1.0])
-                                            .set_size(Vec3::new(0.5, 0.5, 0.5))
-                                            .set_specular(100)
-                                            .set_reflection(0.5),
-        Object::new(Box::new(Sphere::new())).set_position(Vec3::new(-1.0, 1.0, 7.0))
-                                            .set_color([1.0, 1.0, 0.0])
-                                            .set_size(Vec3::new(1.0, 2.0, 1.0)),
-        Object::new(Box::new(Cube::new())).set_position(Vec3::new(1.0, -1.0, 5.0))
-                                          .set_color([1.0, 0.0, 0.0])
-                                          .set_rotation(Vec3::new(0.0, 0.0, 0.5)),
-        Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(1.0, 1.0, 3.0))
-                                                   .set_rotation(Vec3::new(0.0, 0.2, 0.0)),
-    ];
-    */
-    let objects: Vec<Object> = vec![
-        /*
-        Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(-1.0, 0.0, 3.5))
-                                                   .set_rotation(0, 90, 0)
-                                                   .set_size(Vec3::new(5.0, 2.0, 1.0))
-                                                   .set_color([1.0, 1.0, 1.0])
-                                                   .set_reflection(0.5)
-                                                   .set_specular(10),
+    let config_file_raw: String = fs::read_to_string(&args.config).expect("Should have been able to read config file");
+    let config: Config = serde_json::from_str(&config_file_raw).expect("Should have been able to parse config file");
 
-        Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(1.0, 0.0, 3.5))
-                                                   .set_rotation(0, -90, 0)
-                                                   .set_size(Vec3::new(5.0, 2.0, 1.0))
-                                                   .set_color([1.0, 1.0, 1.0])
-                                                   .set_reflection(0.5)
-                                                   .set_specular(10),
-        Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(0.0, 0.0, 5.0))
-                                                   .set_rotation(0, 0, 0)
-                                                   .set_size(Vec3::new(2.0, 2.0, 1.0))
-                                                   .set_color([1.0, 1.0, 1.0])
-                                                   .set_reflection(0.5)
-                                                   .set_specular(10),
-        Object::new(Box::new(Sphere::new())).set_position(Vec3::new(-0.5, -0.5, 2.0))
-                                            .set_color([1.0, 0.0, 0.0])
-                                            .set_specular(1000)
-                                            .set_size(Vec3::new(0.35, 0.35, 0.35)),
-        Object::new(Box::new(Sphere::new())).set_position(Vec3::new(0.5, 0.5, 2.5))
-                                            .set_color([0.0, 0.0, 1.0])
-                                            .set_reflection(0.5)
-                                            .set_specular(10)
-                                            .set_size(Vec3::new(0.35, 0.35, 0.35)),
-                                            */
-        //Object::new(Box::new(Sphere::new())).set_position(Vec3::new(1.0, 1.0, 3.0)).set_specular(100).set_rotation(0, 0, 0),
-        //Object::new(Box::new(Sphere::new())).set_position(Vec3::new(-1.0, -1.0, 3.0))
-        /*
-        Object::new(Box::new(Cube::new())).set_position(Vec3::new(1.0, 1.0, 4.0))
-                                          .set_rotation(0, 45, 0)
-                                          .set_size(Vec3::new(1.0, 0.5, 1.0)),
-        Object::new(Box::new(Cube::new())).set_position(Vec3::new(1.0, 1.0, 4.5))
-                                          .set_size(Vec3::new(1.44, 1.0, 1.0))
-                                          .set_color([1.0, 0.0, 0.0]),
-        Object::new(Box::new(Cube::new())).set_position(Vec3::new(-1.0, -1.0, 4.0))
-                                            //.set_size(Vec3::new(0.3, 0.3, 0.3))
+    let mut img = image::RgbImage::new(config.img_size.0 as u32, config.img_size.1 as u32);
 
-                                            */
-        /*
-        Object::new(Box::new(Intersection::new(Object::new(Box::new(Sphere::new())),
-                                               Object::new(Box::new(Sphere::new())).set_size(Vec3::new(0.5, 0.5, 0.5))
-                                                                                   .set_position(Vec3::new(0.5, 0.0, 0.0))
-                                               ))).set_position(Vec3::new(0.0, 0.0, 4.0))
-                                                  .set_size(Vec3::new(0.8, 0.8, 0.8))
-                                                  .set_rotation(0, -30, 0),
+    let mut objects = config.objects;
+    for object in objects.iter_mut() {
+        object.init();
+    }
 
-        Object::new(Box::new(Difference::new(Object::new(Box::new(Sphere::new())),
-                                               Object::new(Box::new(Sphere::new())).set_size(Vec3::new(0.5, 0.5, 0.5))
-                                                                                   .set_position(Vec3::new(0.5, 0.0, 0.0))
-                                               ))).set_position(Vec3::new(0.5, 1.0, 4.0))
-                                                  .set_size(Vec3::new(0.8, 0.8, 0.8))
-                                                  .set_rotation(0, -70, 0),
-        Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(0.5, 1.0, 4.0))
-                                                   .set_rotation(0, -70, 0)
-                                                   .set_color([0.0, 1.0, 0.0]),
-                                                   */
-        Object::new(Box::new(Obj::new("objs/bird/bird.obj", "objs/bird/bird.png"))).set_position(Vec3::new(0.5, 0.5, 4.0))
-                                                               .set_rotation(-90, 0, 0).set_color([1.0, 0.0, 0.0]),
-        Object::new(Box::new(Obj::new("objs/table/table.obj", "objs/table/table.png"))).set_position(Vec3::new(-0.5, -0.5, 4.0))
-                                                               .set_rotation(-90, 0, 0).set_color([0.0, 1.0, 0.0]),
-        //Object::new(Box::new(Plane::new_default())).set_position(Vec3::new(1.0, -1.5,))
-    ];
-    /*
-    let objects: Vec<Box<dyn Shape>> = vec![
-        /*
-        Box::new(shapes::plane::Plane::new(vec::Vec3::new(-1.0, 1.0, 1.5),
-                                           vec::Vec3::new(0.0, 0.0, 6.0),
-                                           vec::Vec3::new(0.0, -2.5, 0.0),
-                                           [1.0, 1.0, 1.0], 10, 0.9)),
-        Box::new(shapes::plane::Plane::new(vec::Vec3::new(1.0, -1.5, 1.5),
-                                           vec::Vec3::new(0.0, 0.0, 6.0),
-                                           vec::Vec3::new(0.0, 2.5, 0.0),
-                                           [1.0, 1.0, 1.0], 10, 0.9)),
-                                           */
-        Box::new(Cube::new(Vec3::new(-0.8, -1.0, 3.0),
-                           Vec3::new(-0.3, -0.5, 4.0),
-                           [0.0, 1.0, 1.0], 1000, 0.5)),
-        Box::new(Sphere::new(0.2,
-                            Vec3::new(0.25, -0.75, 2.0),
-                            [0.5, 0.5, 0.5], 100, 0.3)),
-        Box::new(Sphere::new(0.2,
-                            Vec3::new(0.5, 0.0, 5.0),
-                            [1.0, 0.5, 0.0], 100, 0.4)),
-        Box::new(Plane::new(Vec3::new(-1.0, 1.0, 1.5),
-                            Vec3::new(0.0, 0.0, 6.0),
-                            Vec3::new(0.0, -2.5, 0.0),
-                            [1.0, 1.0, 0.5], 10, 0.3)),
-    ];
-    */
+    if args.print_debug_objects {
+        println!("{:?}", objects);
+    }
 
-    let lights: Vec<Box<dyn Light>> = vec![
-        //Box::new(PointLight::new(Vec3::new(-0.5, -0.5, 1.5), 0.6)),
-        Box::new(PointLight::new(Vec3::new(0.0, 0.0, 0.0), 0.6)),
-        /*
-        Box::new(PointLight::new(Vec3::new(0.5, 1.5, 1.0), 0.2)),
-        Box::new(PointLight::new(Vec3::new(0.0, 0.5, 8.0), 0.2)),
-        */
-        Box::new(AmbientLight::new(0.2)),
-    ];
+    let lights = config.lights;
 
-    let depth = 4;
-
-    let start = Vec3::new(0.0, 0.0, 0.0);
-    let x_phi = 0.0;
-    let y_phi = 0.0;
-    let z_phi = 0.0;
 
     let bar = ProgressBar::new((img.width() * img.height()) as u64);
 
     for x in 0..img.width() as i32 {
         for y in 0..img.height() as i32 {
             let eye = Vec3::new(
-                viewport_size.0 * ((x - img_size.0/2) as f32) / (img_size.0 as f32),
-                viewport_size.1 * ((y - img_size.1/2) as f32) / (img_size.1 as f32),
+                viewport_size.0 * ((x - config.img_size.0/2) as f32) / (config.img_size.0 as f32),
+                viewport_size.1 * ((y - config.img_size.1/2) as f32) / (config.img_size.1 as f32),
                 z_dist)
                 .norm();
 
-            let eye = rotate_view(x_phi, y_phi, z_phi, eye);
-            let color = ray_trace(&start, &eye, &objects, &lights, Some(1.0), None, depth);
+            let eye = rotate_view(config.view_angle.x(), config.view_angle.y(), config.view_angle.z(), eye);
+            let color = ray_trace(&config.start, &eye, &objects, &lights, Some(1.0), None, config.reflection_depth);
             match color {
                 Some(real_color) => {
                     img.put_pixel(x as u32, y as u32,
@@ -294,6 +208,5 @@ fn main() {
     }
     bar.finish();
 
-    let path = "./img.png";
-    img.save_with_format(path, image::ImageFormat::Png);
+    img.save_with_format(args.output_file, image::ImageFormat::Png).expect("Can not save result image");
 }

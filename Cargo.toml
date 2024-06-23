@@ -9,3 +9,8 @@ edition = "2021"
 image = "0.24.3"
 tobj = "4.0.0"
 indicatif = "0.17.7"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+clap = { version = "4.5.7", features = ["derive"] }
+typetag = "0.2.16"
+derivative = "2.2.0"

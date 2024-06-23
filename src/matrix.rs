@@ -1,7 +1,9 @@
 use std::ops::{Mul,Index};
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
 
+#[derive(Serialize,Deserialize,Default,Debug)]
 pub struct Matrix33 {
     m: [f32; 9],
 }

@@ -1,0 +1,37 @@
+{
+    "img_size": [2048, 2048],
+    "reflection_depth": 4,
+    "objects": [
+        {
+            "position": [0.5, 0.5, 4.0],
+            "rotation_angle": [-90, 0, 0],
+            "color": [1.0, 0.0, 0.0],
+            "shape": {
+                "type": "object",
+                "filepath": "objs/bird/bird.obj",
+                "texture_path": "objs/bird/bird.png"
+            }
+        },
+        {
+            "position": [-0.5, -0.5, 4.0],
+            "rotation_angle": [-90, 0, 0],
+            "color": [0.0, 1.0, 0.0],
+            "shape": {
+                "type": "object",
+                "filepath": "objs/table/table.obj",
+                "texture_path": "objs/table/table.png"
+            }
+        }
+    ],
+    "lights": [
+        {
+            "type": "point",
+            "position": [0.0, 0.0, 0.0],
+            "intensity": 0.6
+        },
+        {
+            "type": "ambient",
+            "intensity": 0.2
+        }
+    ]
+}

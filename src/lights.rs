@@ -1,5 +1,7 @@
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
+#[typetag::serde(tag="type")]
 pub trait Light {
     fn intensity(&self, point: &Vec3, norm: &Vec3) -> f32;
     fn specular(&self, point: &Vec3, norm: &Vec3, eye: &Vec3, s: u32) -> f32;
@@ -8,11 +10,13 @@ pub trait Light {
     }
 }
 
+#[derive(Serialize,Deserialize)]
 pub struct PointLight {
     position: Vec3,
     intensity: f32,
 }
 
+#[typetag::serde(name="point")]
 impl Light for PointLight {
     fn intensity(&self, point: &Vec3, norm: &Vec3) -> f32 {
         let direction = &self.position - point;
@@ -41,6 +45,7 @@ impl Light for PointLight {
 }
 
 impl PointLight {
+    #[allow(dead_code)]
     pub fn new(position: Vec3, intensity: f32) -> PointLight {
         PointLight {
             position,
@@ -49,10 +54,12 @@ impl PointLight {
     }
 }
 
+#[derive(Serialize,Deserialize)]
 pub struct AmbientLight {
     intensity: f32,
 }
 
+#[typetag::serde(name="ambient")]
 impl Light for AmbientLight {
     fn intensity(&self, _point: &Vec3, _norm: &Vec3) -> f32 {
         self.intensity
@@ -64,6 +71,7 @@ impl Light for AmbientLight {
 }
 
 impl AmbientLight {
+    #[allow(dead_code)]
     pub fn new(intensity: f32) -> AmbientLight {
         AmbientLight{intensity}
     }

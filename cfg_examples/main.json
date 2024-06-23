@@ -1,0 +1,50 @@
+{
+    "img_size": [2048, 2048],
+    "reflection_depth": 4,
+    "objects": [
+        {
+            "position": [1.0, 1.0, 5.0],
+            "size": [0.5, 0.5, 0.5],
+            "specular": 100,
+            "reflection": 0.5,
+            "color": [0.0, 1.0, 1.0],
+            "shape": {
+                "type": "sphere"
+            }
+        },
+        {
+            "position": [-1.0, 1.0, 7.0],
+            "color": [1.0, 1.0, 0.0],
+            "size": [1.0, 2.0, 1.0],
+            "shape": {
+                "type": "sphere"
+            }
+        },
+        {
+            "position": [1.0, -1.0, 5.0],
+            "color": [1.0, 0.0, 0.0],
+            "rotation_angle": [0.0, 0.0, 0.5],
+            "shape": {
+                "type": "cube"
+            }
+        },
+        {
+            "position": [1.0, 1.0, 3.0],
+            "rotation_angle": [0.0, 60, 0.0],
+            "shape": {
+                "type": "plane"
+            }
+        }
+    ],
+    "lights": [
+        {
+            "type": "point",
+            "position": [0.0, 0.0, 0.0],
+            "intensity": 0.6
+        },
+        {
+            "type": "ambient",
+            "intensity": 0.2
+        }
+    ]
+}

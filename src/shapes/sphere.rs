@@ -1,11 +1,14 @@
 use super::shape::Shape;
 use super::shape::IntersectionResult;
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
 
+#[derive(Serialize,Deserialize,Debug)]
 pub struct Sphere {
 }
 
+#[typetag::serde(name="sphere")]
 impl Shape for Sphere {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
         let oc = start; // - 0.0,0.0,0.0 (start pos)
@@ -30,6 +33,7 @@ impl Shape for Sphere {
 }
 
 impl Sphere {
+    #[allow(dead_code)]
     pub fn new() -> Sphere {
         Sphere{}
     }

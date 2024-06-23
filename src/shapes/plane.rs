@@ -1,13 +1,24 @@
 use super::shape::Shape;
 use super::shape::IntersectionResult;
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
+#[derive(Serialize,Deserialize,Debug)]
 pub struct Plane {
+    #[serde(default)]
     point: Vec3,
+    #[serde(default)]
     direction1: Vec3,
+    #[serde(default)]
     direction2: Vec3,
 }
+/*
+        Plane::new(Vec3::new(0.5, -0.5, 0.0),
+                   Vec3::new(-1.0, 0.0, 0.0),
+                   Vec3::new(0.0, 1.0, 0.0))
+*/
 
+#[typetag::serde(name="plane")]
 impl Shape for Plane {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
         let norm = self.direction1.cross(&self.direction2).norm();
@@ -37,14 +48,23 @@ impl Shape for Plane {
         }
         Some(IntersectionResult::new(t, t, norm))
     }
+
+    fn init(&mut self) {
+        self.point = Vec3::new(0.5, -0.5, 0.0);
+        self.direction1 = Vec3::new(-1.0, 0.0, 0.0);
+        self.direction2 = Vec3::new(0.0, 1.0, 0.0);
+    }
 }
 
 impl Plane {
+    #[allow(dead_code)]
     pub fn new(point: Vec3, direction1: Vec3, direction2: Vec3) -> Plane {
         Plane{point, direction1, direction2}
     }
+}
 
-    pub fn new_default() -> Plane {
+impl Default for Plane {
+    fn default() -> Plane {
         Plane::new(Vec3::new(0.5, -0.5, 0.0),
                    Vec3::new(-1.0, 0.0, 0.0),
                    Vec3::new(0.0, 1.0, 0.0))

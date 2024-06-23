@@ -1,0 +1,39 @@
+{
+    "img_size": [2048, 2048],
+    "reflection_depth": 4,
+    "objects": [
+        {
+            "position": [1.0, 1.0, 4.0],
+            "rotation_angle": [0, 45, 0],
+            "size": [1.0, 0.5, 1.0],
+            "shape": {
+                "type": "cube"
+            }
+        },
+        {
+            "position": [1.0, 1.0, 4.5],
+            "size": [1.44, 1.0, 1.0],
+            "color": [1.0, 0.0, 0.0],
+            "shape": {
+                "type": "cube"
+            }
+        },
+        {
+            "position": [-1.0, -1.0, 4.0],
+            "shape": {
+                "type": "cube"
+            }
+        }
+    ],
+    "lights": [
+        {
+            "type": "point",
+            "position": [0.0, 0.0, 0.0],
+            "intensity": 0.6
+        },
+        {
+            "type": "ambient",
+            "intensity": 0.2
+        }
+    ]
+}

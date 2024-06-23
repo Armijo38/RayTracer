@@ -1,12 +1,15 @@
 use super::shape::{Shape,IntersectionResult};
 use crate::object::Object;
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
+#[derive(Serialize,Deserialize,Debug)]
 pub struct Difference {
     shape1: Object,
     shape2: Object,
 }
 
+#[typetag::serde(name="difference")]
 impl Shape for Difference {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
         match self.shape1.intersects(start, ray) {
@@ -34,9 +37,15 @@ impl Shape for Difference {
             }
         }
     }
+
+    fn init(&mut self) {
+        self.shape1.init();
+        self.shape2.init();
+    }
 }
 
 impl Difference {
+    #[allow(dead_code)]
     pub fn new(shape1: Object, shape2: Object) -> Difference {
         Difference {
             shape1,

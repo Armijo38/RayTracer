@@ -1,4 +1,5 @@
 use crate::vec::Vec3;
+use serde::{Serialize,Deserialize};
 
 #[derive(Clone)]
 pub struct IntersectionResult {
@@ -21,6 +22,27 @@ impl IntersectionResult {
 }
 
 
-pub trait Shape {
+#[typetag::serde(tag="type")]
+pub trait Shape: std::fmt::Debug {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult>;
+    fn init(&mut self) {
+        // empty
+    }
+}
+
+#[derive(Serialize,Deserialize,Debug)]
+pub struct NoneShape {
+}
+
+impl NoneShape {
+    pub fn new() -> NoneShape {
+        NoneShape{}
+    }
+}
+
+#[typetag::serde(name="none")]
+impl Shape for NoneShape {
+    fn intersects(&self, _start: &Vec3, _ray: &Vec3) -> Option<IntersectionResult> {
+        None
+    }
 }
