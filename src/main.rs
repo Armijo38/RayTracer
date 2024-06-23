@@ -22,9 +22,14 @@ use shapes::shape::IntersectionResult;
 use object::Object;
 use lights::Light;
 
-use indicatif::ProgressBar;
+//use indicatif::{ProgressBar,ProgressStyle};
 use clap::Parser;
 use serde::{Serialize,Deserialize};
+use itertools::iproduct;
+
+use indicatif::{ProgressBar, ParallelProgressIterator, ProgressStyle, ProgressIterator};
+use rayon::iter::{ParallelIterator, IntoParallelRefIterator};
+use rayon::prelude::*;
 
 fn intersect<'a>(start: &Vec3, direction: &Vec3,
                  objects: &'a Vec<Object>,
@@ -156,6 +161,32 @@ struct Config {
     lights: Vec<Box<dyn Light>>,
 }
 
+fn process_pixel(x: i32, y: i32, config: &Config,
+                 viewport_size: (f32, f32),
+                 z_dist: f32) -> (i32, i32, [u8; 3]) {
+    let lights = &config.lights;
+    let objects = &config.objects;
+
+    let eye = Vec3::new(
+        viewport_size.0 * ((x - config.img_size.0/2) as f32) / (config.img_size.0 as f32),
+        viewport_size.1 * ((y - config.img_size.1/2) as f32) / (config.img_size.1 as f32),
+        z_dist)
+        .norm();
+
+    let eye = rotate_view(config.view_angle.x(), config.view_angle.y(), config.view_angle.z(), eye);
+    let color = ray_trace(&config.start, &eye, &objects, &lights, Some(1.0), None, config.reflection_depth);
+    (x, y, match color {
+        Some(real_color) => {
+            [(255.0 * real_color[0]) as u8,
+             (255.0 * real_color[1]) as u8,
+             (255.0 * real_color[2]) as u8]
+        },
+        None => {
+            [0, 0, 0]
+        }
+    })
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -163,50 +194,30 @@ fn main() {
     let z_dist = 1.0;
 
     let config_file_raw: String = fs::read_to_string(&args.config).expect("Should have been able to read config file");
-    let config: Config = serde_json::from_str(&config_file_raw).expect("Should have been able to parse config file");
+    let mut config: Config = serde_json::from_str(&config_file_raw).expect("Should have been able to parse config file");
 
     let mut img = image::RgbImage::new(config.img_size.0 as u32, config.img_size.1 as u32);
 
-    let mut objects = config.objects;
-    for object in objects.iter_mut() {
+    for object in config.objects.iter_mut() {
         object.init();
     }
 
     if args.print_debug_objects {
-        println!("{:?}", objects);
+        println!("{:?}", config.objects);
     }
 
-    let lights = config.lights;
+    
+    let style = ProgressStyle::default_bar();
+    //rayon::ThreadPoolBuilder::new().num_threads(1).build_global().unwrap();
 
-
-    let bar = ProgressBar::new((img.width() * img.height()) as u64);
-
-    for x in 0..img.width() as i32 {
-        for y in 0..img.height() as i32 {
-            let eye = Vec3::new(
-                viewport_size.0 * ((x - config.img_size.0/2) as f32) / (config.img_size.0 as f32),
-                viewport_size.1 * ((y - config.img_size.1/2) as f32) / (config.img_size.1 as f32),
-                z_dist)
-                .norm();
-
-            let eye = rotate_view(config.view_angle.x(), config.view_angle.y(), config.view_angle.z(), eye);
-            let color = ray_trace(&config.start, &eye, &objects, &lights, Some(1.0), None, config.reflection_depth);
-            match color {
-                Some(real_color) => {
-                    img.put_pixel(x as u32, y as u32,
-                                  image::Rgb([(255.0 * real_color[0]) as u8,
-                                              (255.0 * real_color[1]) as u8,
-                                              (255.0 * real_color[2]) as u8]))
-                },
-                None => {
-                    img.put_pixel(x as u32, y as u32,
-                                  image::Rgb([0, 0, 0]));
-                }
-            }
-            bar.inc(1);
-        }
-    }
-    bar.finish();
+    iproduct!(0..img.width(), 0..img.height())
+        .collect::<Vec<(u32, u32)>>()
+        .par_iter()
+        .progress_with_style(style)
+        .map(|x| process_pixel(x.0 as i32, x.1 as i32, &config, viewport_size, z_dist))
+        .collect::<Vec<(i32, i32, [u8; 3])>>()
+        .iter()
+        .for_each(|x| img.put_pixel(x.0 as u32, x.1 as u32, image::Rgb(x.2)));
 
     img.save_with_format(args.output_file, image::ImageFormat::Png).expect("Can not save result image");
 }

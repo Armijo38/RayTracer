@@ -2,7 +2,7 @@ use crate::vec::Vec3;
 use serde::{Serialize,Deserialize};
 
 #[typetag::serde(tag="type")]
-pub trait Light {
+pub trait Light: Sync + Send {
     fn intensity(&self, point: &Vec3, norm: &Vec3) -> f32;
     fn specular(&self, point: &Vec3, norm: &Vec3, eye: &Vec3, s: u32) -> f32;
     fn point(&self) -> Option<&Vec3> {

@@ -23,7 +23,7 @@ impl IntersectionResult {
 
 
 #[typetag::serde(tag="type")]
-pub trait Shape: std::fmt::Debug {
+pub trait Shape: std::fmt::Debug + Sync + Send {
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult>;
     fn init(&mut self) {
         // empty
