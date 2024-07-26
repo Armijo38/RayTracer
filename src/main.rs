@@ -198,9 +198,12 @@ fn main() {
 
     let mut img = image::RgbImage::new(config.img_size.0 as u32, config.img_size.1 as u32);
 
+    let start_time = std::time::Instant::now();
     for object in config.objects.iter_mut() {
         object.init();
     }
+    let duration = start_time.elapsed();
+    println!("Init took {}.{}s", duration.as_secs(), duration.subsec_millis());
 
     if args.print_debug_objects {
         println!("{:?}", config.objects);
@@ -210,6 +213,7 @@ fn main() {
     let style = ProgressStyle::default_bar();
     //rayon::ThreadPoolBuilder::new().num_threads(1).build_global().unwrap();
 
+    let start_time = std::time::Instant::now();
     iproduct!(0..img.width(), 0..img.height())
         .collect::<Vec<(u32, u32)>>()
         .par_iter()
@@ -218,6 +222,8 @@ fn main() {
         .collect::<Vec<(i32, i32, [u8; 3])>>()
         .iter()
         .for_each(|x| img.put_pixel(x.0 as u32, x.1 as u32, image::Rgb(x.2)));
+    let duration = start_time.elapsed();
+    println!("Ray tracing took {}.{}s", duration.as_secs(), duration.subsec_millis());
 
     img.save_with_format(args.output_file, image::ImageFormat::Png).expect("Can not save result image");
 }

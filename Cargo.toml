@@ -16,3 +16,8 @@ typetag = "0.2.16"
 derivative = "2.2.0"
 itertools = "0.10.1"
 rayon = "1.10.0"
+
+[profile.release]
+# lto = "fat"
+# opt-level = 3
+overflow-checks = false

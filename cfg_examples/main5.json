@@ -1,5 +1,5 @@
 {
-    "img_size": [2048, 2048],
+    "img_size": [1920, 1080],
     "reflection_depth": 4,
     "objects": [
         {

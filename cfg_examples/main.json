@@ -23,14 +23,14 @@
         {
             "position": [1.0, -1.0, 5.0],
             "color": [1.0, 0.0, 0.0],
-            "rotation_angle": [0.0, 0.0, 0.5],
+            "rotation_angle": [0, 0, 30],
             "shape": {
                 "type": "cube"
             }
         },
         {
             "position": [1.0, 1.0, 3.0],
-            "rotation_angle": [0.0, 60, 0.0],
+            "rotation_angle": [0, 60, 0],
             "shape": {
                 "type": "plane"
             }

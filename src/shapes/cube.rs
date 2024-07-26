@@ -43,10 +43,15 @@ impl Shape for Cube {
 
     fn intersects(&self, start: &Vec3, ray: &Vec3) -> Option<IntersectionResult> {
         let mut result: Option<IntersectionResult> = None;
+        let mut intersections_count = 0;
         for plane in &self.planes {
+            if intersections_count == 2 {
+                break;
+            }
             result = match plane.intersects(start, ray) {
                 None => result,
                 Some(mut intersection) => {
+                    intersections_count += 1;
                     match result {
                         None => Some(intersection),
                         Some(mut best_intersection) => {
@@ -68,14 +73,7 @@ impl Shape for Cube {
 }
 
 impl Cube {
-    #[allow(dead_code)]
-    pub fn new() -> Cube {
-        //point1 - left up
-        //point2 - right down
-
-        let point1 = Vec3::new(-0.5, -0.5, -0.5);
-        let point2 = Vec3::new(0.5, 0.5, 0.5);
-
+    pub fn new(point1: &Vec3, point2: &Vec3) -> Cube {
         Cube {
             planes: [
                 Plane::new(Vec3::new(point1.x(), point2.y(), point2.z()),
@@ -98,5 +96,18 @@ impl Cube {
                            Vec3::new(0.0, 0.0, point2.z() - point1.z())), // down
             ]
         }
+    }
+}
+
+impl Default for Cube {
+    #[allow(dead_code)]
+    fn default() -> Cube {
+        //point1 - left up
+        //point2 - right down
+
+        let point1 = Vec3::new(-0.5, -0.5, -0.5);
+        let point2 = Vec3::new(0.5, 0.5, 0.5);
+
+        Cube::new(&point1, &point2)
     }
 }
