@@ -38,8 +38,8 @@ impl Shape for Plane {
         let point = start + ray * t;
 
         //let point2 = &self.point + &self.direction1 + &self.direction2;
-        let eps = 1e-5;
         /*
+        let eps = 1e-5;
         if point.x() < f32::min(self.point.x(), point2.x()) - eps
             || point.x() > f32::max(self.point.x(), point2.x()) + eps
             || point.y() < f32::min(self.point.y(), point2.y()) - eps

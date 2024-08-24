@@ -9,7 +9,6 @@ use image::io::Reader as ImageReader;
 use image::Rgb32FImage;
 use serde::{Serialize,Deserialize};
 use derivative::Derivative;
-use std::cmp::{max,min};
 use std::sync::Arc;
 
 
